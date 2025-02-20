@@ -1,0 +1,23 @@
+/* assets/style.css */
+body {
+    font-family: sans-serif; /* Use a sans-serif font */
+}
+
+h1 {
+    color: #333; /* Dark gray heading */
+    text-align: center; /* Center the heading */
+}
+
+.container { /* A general container class */
+    width: 80%; /* Occupy 80% of the page width */
+    margin: 20px auto; /* Center the container */
+}
+
+.graph { /* Style for the graph */
+    width: 100%; /* Make the graph take full container width */
+    margin-top: 20px; /* Add some space above the graph */
+}
+
+.dropdown { /* Style for the dropdown */
+    margin-bottom: 20px; /* Add some space below the dropdown */
+}
