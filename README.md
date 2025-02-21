@@ -1,6 +1,6 @@
 # weather-data-visualisation
 
-This app provides an interactive way to explore historical temperature data for various locations. Users can search for locations, select a date range, and view temperature trends over time.  
+#This app provides an interactive way to explore historical temperature data for various locations. Users can search for locations, select a date range, and view temperature trends over time.  
 
 #Clone respository:
 ```bash
@@ -24,12 +24,12 @@ python3 -m pip install -r requirements.txt
 #Run the app
 python3 main.py
 
-Full functionality still in progress
+#Full functionality still in progress
 
-Functions & Usage will include:
-Location search & select with dropdown and LineEdit
-Display live and historical data
-Date range picker
-Interactive graphs
+#Functions & Usage will include:
+#Location search & select with dropdown and LineEdit
+#Display live and historical data
+#Date range picker
+#Interactive graphs
 
 
