@@ -4,6 +4,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import requests
+import requests_cache
+from retry_requests import retry
 import json
 import openmeteo_requests
 from datetime import datetime, timedelta, date
