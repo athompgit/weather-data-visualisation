@@ -1,28 +1,24 @@
 # weather-data-visualisation
 
-#This app provides an interactive way to explore historical temperature data for various locations. Users can search for locations, select a date range, and view temperature trends over time.  
+#This app provides an interactive way to explore historical weather data for various locations. Users can search for locations, select a date range, and view weather trends over time.  
 
-#Clone respository:
-```bash
-   git clone [https://github.com/](https://github.com/)athompgit/weather-data-visualisation.git
+#Instructions on downloading and running weather app
 
-#Activate Virtual Environment:
-cat create-venv.sh
-#!/bin/bash
+#Copy this shell script into your Terminal(MacOS)
 
-if [[ ! -d storage-valuer-venv ]]
-then
-  python3 -m venv storage-valuer-venv
-  ./storage-valuer-venv/bin/python -m pip install --upgrade pip
+if ! command -v brew &>/dev/null; then
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
+wdvApp_url="https://github.com/athompgit/weather-data-visualisation.git"
+git clone "$wdvApp_url"
+wdvApp=$(basename "$wdvApp_url" .git)
+cd "$wdvApp"
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python main.py
 
-source storage-valuer-venv/bin/activate
 
-#Install requirements.txt
-python3 -m pip install -r requirements.txt
-
-#Run the app
-python3 main.py
 
 #Full functionality still in progress
 
