@@ -18,9 +18,9 @@ git clone "$wdvApp_url"
 wdvApp=$(basename "$wdvApp_url" .git)
 cd "$wdvApp"
 python3 -m venv .venv
+source .venv/bin/activate 
 pip install --upgrade pip
 pip install -r requirements.txt
-source .venv/bin/activate 
 python3 main.py
 
 
