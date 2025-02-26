@@ -13,14 +13,15 @@ fi
 if ! command -v python3 &>/dev/null; then
     brew install python3
 fi
-pip install --upgrade pip
 wdvApp_url="https://github.com/athompgit/weather-data-visualisation.git"
 git clone "$wdvApp_url"
 wdvApp=$(basename "$wdvApp_url" .git)
 cd "$wdvApp"
-pip install -r requirements.txt
 python3 -m venv .venv
-( source .venv/bin/activate; python3 main.py )
+pip install --upgrade pip
+pip install -r requirements.txt
+source .venv/bin/activate 
+python3 main.py
 
 
 
