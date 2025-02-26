@@ -18,9 +18,9 @@ wdvApp_url="https://github.com/athompgit/weather-data-visualisation.git"
 git clone "$wdvApp_url"
 wdvApp=$(basename "$wdvApp_url" .git)
 cd "$wdvApp"
+pip install -r requirements.txt
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
 python3 main.py
 
 
