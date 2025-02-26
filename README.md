@@ -6,9 +6,14 @@
 
 #Copy this shell script(code view) into your Terminal(MacOS)
 
+#!/bin/bash
 if ! command -v brew &>/dev/null; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
+if ! command -v python3 &>/dev/null; then
+    brew install python3
+fi
+pip install --upgrade pip
 wdvApp_url="https://github.com/athompgit/weather-data-visualisation.git"
 git clone "$wdvApp_url"
 wdvApp=$(basename "$wdvApp_url" .git)
