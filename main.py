@@ -1,11 +1,10 @@
-import dash
-from dash import dcc, html, Input, Output, State
+from dash import dcc, html, Input, Output, State, Dash
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import requests
 import requests_cache
-from retry_requests import retry
+from retrying import retry
 import openmeteo_requests
 from datetime import datetime, timedelta, date
 
@@ -99,7 +98,7 @@ def geocode_location(search_term):
 
 #Dash App Setup
 external_stylesheets = ['style.css']
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 initial_dropdown_options = []
 
