@@ -4,7 +4,7 @@
 
 #Instructions on downloading and running weather app
 
-#Copy this shell script into your Terminal(MacOS)
+#Copy this shell script(code view) into your Terminal(MacOS)
 
 if ! command -v brew &>/dev/null; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
