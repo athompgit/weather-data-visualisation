@@ -20,8 +20,7 @@ wdvApp=$(basename "$wdvApp_url" .git)
 cd "$wdvApp"
 pip install -r requirements.txt
 python3 -m venv .venv
-source .venv/bin/activate
-python3 main.py
+( source .venv/bin/activate; python3 main.py )
 
 
 
