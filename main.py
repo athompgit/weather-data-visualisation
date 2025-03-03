@@ -1,4 +1,4 @@
-from dash import dcc, html, Input, Output, State, Dash
+from dash import dcc, html, Input, Output, State, Dash, dash
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
