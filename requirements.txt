@@ -1,4 +1,5 @@
 blinker
+retry_requests
 certifi
 charset-normalizer
 click
