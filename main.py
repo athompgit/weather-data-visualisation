@@ -8,11 +8,45 @@ from retry_requests import retry
 import openmeteo_requests
 from datetime import datetime, timedelta, date
 
-
+# Cache for historical data (never expires)
 cache_session = requests_cache.CachedSession('.cache', expire_after=-1)
 retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
 openmeteo = openmeteo_requests.Client(session=retry_session)
 
+# Cache for current weather data (expires after 1 hour)
+cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
+retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
+
+
+def get_current_temperature(lat, lon):
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "forecast_days": 1,
+        "current_weather": True
+
+    }
+    responses = openmeteo.weather_api(url, params=params)
+
+    # Process first location. Add a for-loop for multiple locations or weather models
+    response = responses[0]
+    print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
+    print(f"Elevation {response.Elevation()} m asl")
+    print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
+    print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
+
+    # Current values. The order of variables needs to be the same as requested.
+    current = response.Current()
+
+    current_temperature_2m = current.Variables(0).Value()
+
+    print(f"Current time {current.Time()}")
+
+    print(f"Current temperature_2m {current_temperature_2m}")
+
+def get_current_time():
+    pass
 
 def get_weather_data(lat, lon, start_date, end_date):
 
@@ -123,7 +157,12 @@ app.layout = html.Div(className='container', children=[
         start_date=min_date,
         end_date=today
     ),
-    dcc.Graph(id='weather-graph', className='graph')
+    dcc.Graph(id='weather-graph', className='graph'),
+
+    html.Div(
+        id="current-temp-display",
+        className="current-temp"
+    )
 ])
 
 
