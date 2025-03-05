@@ -1,10 +1,10 @@
-from dash import dcc, html, Input, Output, State, Dash
+from dash import dcc, html, Input, Output, State, Dash, dash
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import requests
 import requests_cache
-from retrying import retry
+from retry_requests import retry
 import openmeteo_requests
 from datetime import datetime, timedelta, date
 
@@ -31,7 +31,7 @@ def get_weather_data(lat, lon, start_date, end_date):
 
         if not responses or len(responses) == 0:
             print("mo response returned from api for these parameters")
-            return pd.DataFrame
+            return pd.DataFrame()
         response = responses[0]
 
 
