@@ -41,9 +41,8 @@ def get_current_temperature(lat, lon):
 
     current_temperature_2m = current.Variables(0).Value()
 
-    print(f"Current time {current.Time()}")
+    return {"temperature": current_temperature_2m}
 
-    print(f"Current temperature_2m {current_temperature_2m}")
 
 def get_current_time():
     pass
@@ -157,15 +156,32 @@ app.layout = html.Div(className='container', children=[
         start_date=min_date,
         end_date=today
     ),
-    dcc.Graph(id='weather-graph', className='graph'),
 
-    html.Div(
-        id="current-temp-display",
-        className="current-temp"
-    )
+    html.Div(id="current-temp-display", className="current-temp"),
+    html.Div(id="current-time-display", className="current_time"),
+    dcc.Graph(id='weather-graph', className='graph'),
 ])
 
+@app.callback(
+    Output('current-temp-display', 'children'),
+    Input('location-dropdown', 'value')
+)
+def update_current_temp(selected_locations):
+    if not selected_locations:
+        return "No location selected."
 
+    try:
+        lat, lon = map(float, selected_locations[0].split(','))
+    except Exception as e:
+        return (f"Invalid Location: {selected_locations[0]}")
+
+    current_temp = get_current_temperature(lat, lon)
+    rounded_temp = round(current_temp['temperature'])
+
+    return html.Div([
+        html.H2(f"{rounded_temp}ºC", className='temp-number'),
+        html.P("Current Temperature", className='temp-label')
+    ])
 
 @app.callback(
     Output('location-dropdown', 'options'),
