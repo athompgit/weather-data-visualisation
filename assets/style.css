@@ -1,0 +1,54 @@
+/* assets/style.css */
+body {
+    font-family: sans-serif; /* Use a sans-serif font */
+}
+
+h1 {
+    color: #333; /* Dark gray heading */
+    text-align: center; /* Center the heading */
+}
+
+.container { /* A general container class */
+    width: 80%; /* Occupy 80% of the page width */
+    margin: 20px auto; /* Center the container */
+}
+
+.graph { /* Style for the graph */
+    width: 100%; /* Make the graph take full container width */
+    margin-top: 20px; /* Add some space above the graph */
+}
+
+.dropdown { /* Style for the dropdown */
+    margin-bottom: 20px; /* Add some space below the dropdown */
+}
+.current-temp {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  font-size: 24px;
+  color: blue;
+}
+/* assets/style.css */
+
+.current-temp-widget {
+    background-color: #f0f8ff;  /* Light blue background */
+    border: 2px solid #007acc;  /* Blue border */
+    border-radius: 15px;        /* Rounded corners */
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.temp-number {
+    font-size: 48px;
+    margin: 0;
+    color: #007acc;
+}
+
+.temp-label {
+    font-size: 18px;
+    margin: 0;
+    color: #555;
+}
