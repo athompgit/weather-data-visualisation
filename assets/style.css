@@ -1,35 +1,34 @@
-/* assets/style.css */
 body {
-    font-family: sans-serif; /* Use a sans-serif font */
+    font-family: sans-serif;
 }
 
 h1 {
-    color: #333; /* Dark gray heading */
-    text-align: center; /* Center the heading */
+    color: #333;
+    text-align: center;
 }
 
-.container { /* A general container class */
-    width: 80%; /* Occupy 80% of the page width */
-    margin: 20px auto; /* Center the container */
+.container {
+    width: 80%;
+    margin: 20px auto;
 }
 
-.graph { /* Style for the graph */
-    width: 100%; /* Make the graph take full container width */
-    margin-top: 20px; /* Add some space above the graph */
+.graph {
+    width: 100%;
+    margin-top: 20px;
 }
 
-.dropdown { /* Style for the dropdown */
-    margin-bottom: 20px; /* Add some space below the dropdown */
+.dropdown {
+    margin-bottom: 20px;
 }
+
 .current-temp {
-  position: absolute;
-  top: 50%;
-  left: 20px;
-  transform: translateY(-50%);
-  font-size: 24px;
-  color: blue;
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    font-size: 24px;
+    color: blue;
 }
-/* assets/style.css */
 
 .current-temp-widget {
     background-color: #f0f8ff;
