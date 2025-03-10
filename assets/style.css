@@ -1,0 +1,53 @@
+body {
+    font-family: sans-serif;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+}
+
+.container {
+    width: 80%;
+    margin: 20px auto;
+}
+
+.graph {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.dropdown {
+    margin-bottom: 20px;
+}
+
+.current-temp {
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    font-size: 24px;
+    color: blue;
+}
+
+.current-temp-widget {
+    background-color: #f0f8ff;
+    border: 2px solid #007acc;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.temp-number {
+    font-size: 48px;
+    margin: 0;
+    color: #007acc;
+}
+
+.temp-label {
+    font-size: 18px;
+    margin: 0;
+    color: #555;
+}
