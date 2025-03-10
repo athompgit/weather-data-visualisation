@@ -149,7 +149,7 @@ app.layout = html.Div(className='container', children=[
         multi=True,
         className='dropdown'
     ),
-    html.Div(id="current-temp-display", className="current-temp"),
+    html.Div(id="current-temp-display", className="current-temp-widget"),
     html.Div(id="current-time-display", className="current_time"),
     dcc.Graph(id='weather-graph', className='graph'),
 
