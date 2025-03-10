@@ -130,7 +130,7 @@ def geocode_location(search_term):
 
 
 #Dash App Setup
-external_stylesheets = ['style.css']
+external_stylesheets = ['/Users/audrey/PycharmProjects/weather-data-visualisation/assets/style.css']
 app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 initial_dropdown_options = []
@@ -149,17 +149,17 @@ app.layout = html.Div(className='container', children=[
         multi=True,
         className='dropdown'
     ),
+    html.Div(id="current-temp-display", className="current-temp"),
+    html.Div(id="current-time-display", className="current_time"),
+    dcc.Graph(id='weather-graph', className='graph'),
+
     dcc.DatePickerRange(
         id='date-range-picker',
         min_date_allowed=min_date,
         max_date_allowed=today,
         start_date=min_date,
         end_date=today
-    ),
-
-    html.Div(id="current-temp-display", className="current-temp"),
-    html.Div(id="current-time-display", className="current_time"),
-    dcc.Graph(id='weather-graph', className='graph'),
+    )
 ])
 
 @app.callback(
@@ -173,7 +173,7 @@ def update_current_temp(selected_locations):
     try:
         lat, lon = map(float, selected_locations[0].split(','))
     except Exception as e:
-        return (f"Invalid Location: {selected_locations[0]}")
+        return f"Invalid Location: {selected_locations[0]}"
 
     current_temp = get_current_temperature(lat, lon)
     rounded_temp = round(current_temp['temperature'])
