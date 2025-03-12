@@ -8,14 +8,15 @@ from retry_requests import retry
 import openmeteo_requests
 from datetime import datetime, timedelta, date
 
-# Cache for historical data (never expires)
-cache_session = requests_cache.CachedSession('.cache', expire_after=-1)
-retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-openmeteo = openmeteo_requests.Client(session=retry_session)
+# 1) Cache for historical data (never expires)
+cache_session_hist = requests_cache.CachedSession('historical_cache', expire_after=-1)
+retry_session_hist = retry(cache_session_hist, retries=5, backoff_factor=0.2)
+openmeteo_hist = openmeteo_requests.Client(session=retry_session_hist)
 
-# Cache for current weather data (expires after 1 hour)
-cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
-retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
+# 2) Cache for current weather data (expires after 1 hour)
+cache_session_current = requests_cache.CachedSession('current_cache', expire_after=3600)
+retry_session_current = retry(cache_session_current, retries=5, backoff_factor=0.2)
+openmeteo_current = openmeteo_requests.Client(session=retry_session_current)
 
 
 def get_current_temperature(lat, lon):
@@ -27,7 +28,7 @@ def get_current_temperature(lat, lon):
         "current_weather": True
 
     }
-    responses = openmeteo.weather_api(url, params=params)
+    responses = openmeteo_current.weather_api(url, params=params)
 
     # Process first location. Add a for-loop for multiple locations or weather models
     response = responses[0]
@@ -59,7 +60,7 @@ def get_weather_data(lat, lon, start_date, end_date):
         "wind_speed_unit": "mph"
     }
     try:
-        responses = openmeteo.weather_api(url, params=params)
+        responses = openmeteo_hist.weather_api(url, params=params)
         print("API responses:", responses)
 
         if not responses or len(responses) == 0:
