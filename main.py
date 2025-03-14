@@ -6,7 +6,7 @@ import requests
 import requests_cache
 from retry_requests import retry
 import openmeteo_requests
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, time, timezone
 
 # 1) Cache for historical data (never expires)
 cache_session_hist = requests_cache.CachedSession('historical_cache', expire_after=-1)
@@ -45,11 +45,37 @@ def get_current_temperature(lat, lon):
     return {"temperature": current_temperature_2m}
 
 
-def get_current_time():
-    pass
+def get_current_time(lat, lon):
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "current_weather": True,
+        "timezone": "auto",
+        "forecast_days": 1
+    }
+    responses = openmeteo_current.weather_api(url, params=params)
+
+    if not responses:
+        print("Error fetching time data")
+        return {"time": "N/A"}
+
+    response = responses[0]
+    current_weather = response.Current()
+
+    timestamp = current_weather.Time()
+
+    try:
+        time_utc = datetime.fromtimestamp(timestamp, timezone.utc)
+        local_time = time_utc.strftime("%H:%M")
+    except Exception:
+        print(f"Error converting timestamp: {Exception}")
+        return {'time': "N/A"}
+
+    return {"time": f"{local_time}"}
+
 
 def get_weather_data(lat, lon, start_date, end_date):
-
     url = "https://archive-api.open-meteo.com/v1/archive"
     params = {
         "latitude": lat,
@@ -67,7 +93,6 @@ def get_weather_data(lat, lon, start_date, end_date):
             print("mo response returned from api for these parameters")
             return pd.DataFrame()
         response = responses[0]
-
 
         hourly = response.Hourly()
         hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
@@ -92,7 +117,6 @@ def get_weather_data(lat, lon, start_date, end_date):
 
 
 def create_weather_graph(meteo_df, title):
-
     if meteo_df.empty:
         return go.Figure(data=[go.Scatter()],
                          layout=go.Layout(title=title, xaxis=dict(title='Time'), yaxis=dict(title='Temperature')))
@@ -102,7 +126,6 @@ def create_weather_graph(meteo_df, title):
 
 
 def geocode_location(search_term):
-
     if not search_term:
         return None
 
@@ -129,8 +152,7 @@ def geocode_location(search_term):
         return None
 
 
-
-#Dash App Setup
+# Dash App Setup
 external_stylesheets = ['/Users/audrey/PycharmProjects/weather-data-visualisation/assets/style.css']
 app = Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -139,19 +161,22 @@ initial_dropdown_options = []
 today = date.today()
 min_date = today - timedelta(days=31000)
 
-#Defines content and structure of app's UI
+# Defines content and structure of app's UI
 app.layout = html.Div(className='container', children=[
     html.H1("Weather Data Visualisation"),
-    dcc.Input(id='location-search', placeholder='Enter a location', type='text'),
-    dcc.Dropdown(
-        id='location-dropdown',
-        options=initial_dropdown_options,
-        value=None,
-        multi=True,
-        className='dropdown'
-    ),
-    html.Div(id="current-temp-display", className="current-temp-widget"),
-    html.Div(id="current-time-display", className="current_time"),
+
+    html.Div(className='search-container', children=[
+        dcc.Input(id='location-search', placeholder='Enter a location', type='text', className='search-input'),
+        dcc.Dropdown(
+            id='location-dropdown'
+        ),
+    ]),
+
+    html.Div(className='widget-container', children=[
+        html.Div(id='current-temp-display', className='current-temp-widget'),
+        html.Div(id="current-time-display", className='current-time-widget'),
+    ]),
+
     dcc.Graph(id='weather-graph', className='graph'),
 
     dcc.DatePickerRange(
@@ -163,27 +188,47 @@ app.layout = html.Div(className='container', children=[
     )
 ])
 
+
 @app.callback(
-    Output('current-temp-display', 'children'),
-    Input('location-dropdown', 'value')
+    [Output('current-temp-display', 'children'),
+     Output('current-time-display', 'children')],
+    [Input('location-dropdown', 'value')]
 )
-def update_current_temp(selected_locations):
+def update_temp_and_time(selected_locations):
+    print(f"Selected location value: {selected_locations}")
     if not selected_locations:
-        return "No location selected."
+        return html.Div("No location selected.", className='error'), html.Div("No location selected.",
+                                                                              className='error')
 
     try:
-        lat, lon = map(float, selected_locations[0].split(','))
-    except Exception as e:
-        return f"Invalid Location: {selected_locations[0]}"
+        lat, lon = map(float, selected_locations.split(','))
+    except ValueError:
+        return (html.Div(f"Invalid Location: {selected_locations[0]}", className='error'),
+                html.Div("N/A", className='error'))
 
     current_temp = get_current_temperature(lat, lon)
+    if 'temperature' not in current_temp:
+        return (html.Div("Error fetching temperature", className='error'),
+                html.Div("N/A", className='error'))
+
     rounded_temp = round(current_temp['temperature'])
 
-    return html.Div([
+    current_time = get_current_time(lat, lon)
+
+    temp_div = html.Div([
         html.H2(f"{rounded_temp}ºC", className='temp-number'),
         html.P("Current Temperature", className='temp-label')
-    ])
+    ], className="current-temp-widget")
 
+    time_div = html.Div([
+        html.H2(f"{current_time['time']}", className='time-number'),
+        html.P("Local Time", className='time-label')
+    ], className="current-time-widget")
+
+    return temp_div, time_div
+
+
+# Callback for temp and time display
 @app.callback(
     Output('location-dropdown', 'options'),
     Output('location-dropdown', 'value'),
@@ -191,7 +236,6 @@ def update_current_temp(selected_locations):
     State('location-dropdown', 'value')
 )
 def update_location_options(search_term, selected_locations):
-
     if search_term:
         result = geocode_location(search_term)
         if result is not None:
@@ -204,6 +248,7 @@ def update_location_options(search_term, selected_locations):
     return dash.no_update, selected_locations
 
 
+# Callback for weather graph, l
 @app.callback(
     Output('weather-graph', 'figure'),
     Input('location-dropdown', 'value'),
@@ -211,13 +256,16 @@ def update_location_options(search_term, selected_locations):
     Input('date-range-picker', 'end_date')
 )
 def update_graph(selected_locations, start_date, end_date):
-  #  historical_url = "https://historical-forecast-api.open-meteo.com/v1/forecast"
+    #  historical_url = "https://historical-forecast-api.open-meteo.com/v1/forecast"
     if not selected_locations:
         return dash.no_update
 
     fig = go.Figure()
     start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
     end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+
+    if not isinstance(selected_locations, list):  # Add check to ensure selected_locations is a list.
+        selected_locations = [selected_locations]
 
     for location in selected_locations:
         try:
@@ -226,17 +274,16 @@ def update_graph(selected_locations, start_date, end_date):
             print(f"Invalid location format: {location}")
             continue
 
+
         meteo_df = get_weather_data(lat, lon, start_date_obj, end_date_obj)
 
         if not meteo_df.empty:
             temp_fig = create_weather_graph(meteo_df, f"Temperature at {location}")
             for trace in temp_fig.data:
-
                 trace.name = location
                 fig.add_trace(trace)
         else:
             print(f"No available data for {location}")
-
 
     fig.update_layout(
         title="Historical Weather Comparison",
