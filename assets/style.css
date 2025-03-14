@@ -10,6 +10,7 @@ h1 {
 .container {
     width: 80%;
     margin: 20px auto;
+    text-align: center;
 }
 
 .graph {
@@ -21,25 +22,34 @@ h1 {
     margin-bottom: 20px;
 
 }
-
-.current-temp-widget {
-    background-color: #f0f8ff;
+.current-time-widget, .current-temp-widget {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     border: 2px solid #007acc;
     border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 20px;
+    padding: 15px 20px;
+    width: 200px;
+    height: 100px;
     text-align: center;
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+    margin: 0 10px;
+
 }
 
-.temp-number {
-    font-size: 48px;
-    margin: 0;
+.time-number, .temp-number {
+    font-size: 36px;
     color: #007acc;
+    font-weight: bold;
 }
 
 .temp-label {
-    font-size: 18px;
+    font-size: 16px;
+    margin: 0;
+    color: #555;
+}
+.time-label {
+    font-size: 16px;
     margin: 0;
     color: #555;
 }
