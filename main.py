@@ -45,7 +45,7 @@ def get_current_temperature(lat, lon):
     return {"temperature": current_temperature_2m}
 
 
-timezone_offset = None  # Store timezone offset
+timezone_offset = None
 
 
 def get_current_time(lat, lon):
@@ -64,7 +64,7 @@ def get_current_time(lat, lon):
         timezone_name = response.Timezone()
         timezone_offset_seconds = response.UtcOffsetSeconds()
 
-        # Get the current UTC time and adjust it based on the offset
+
         local_time = datetime.now(timezone.utc) + timedelta(seconds=timezone_offset_seconds)
 
         return {"time": local_time.strftime("%H:%M")}
