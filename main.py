@@ -45,34 +45,33 @@ def get_current_temperature(lat, lon):
     return {"temperature": current_temperature_2m}
 
 
+timezone_offset = None  # Store timezone offset
+
+
 def get_current_time(lat, lon):
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
         "latitude": lat,
         "longitude": lon,
-        "current_weather": True,
         "timezone": "auto",
-        "forecast_days": 1
+        "current_weather": True
     }
-    responses = openmeteo_current.weather_api(url, params=params)
-
-    if not responses:
-        print("Error fetching time data")
-        return {"time": "N/A"}
-
-    response = responses[0]
-    current_weather = response.Current()
-
-    timestamp = current_weather.Time()
 
     try:
-        time_utc = datetime.fromtimestamp(timestamp, timezone.utc)
-        local_time = time_utc.strftime("%H:%M")
-    except Exception:
-        print(f"Error converting timestamp: {Exception}")
-        return {'time': "N/A"}
+        responses = openmeteo_current.weather_api(url, params=params)
+        response = responses[0]
 
-    return {"time": f"{local_time}"}
+        timezone_name = response.Timezone()
+        timezone_offset_seconds = response.UtcOffsetSeconds()
+
+        # Get the current UTC time and adjust it based on the offset
+        local_time = datetime.now(timezone.utc) + timedelta(seconds=timezone_offset_seconds)
+
+        return {"time": local_time.strftime("%H:%M")}
+
+    except Exception as e:
+        print(f"Error fetching time data: {e}")
+        return {"time": "N/A"}
 
 
 def get_weather_data(lat, lon, start_date, end_date):
@@ -194,23 +193,18 @@ app.layout = html.Div(className='container', children=[
      Output('current-time-display', 'children')],
     [Input('location-dropdown', 'value')]
 )
-def update_temp_and_time(selected_locations):
-    print(f"Selected location value: {selected_locations}")
-    if not selected_locations:
-        return html.Div("No location selected.", className='error'), html.Div("No location selected.",
-                                                                              className='error')
+
+def update_temp_and_time(selected_location):
+    if not selected_location:
+        return html.Div("No location selected.", className='error'), html.Div("No location selected.", className='error')
 
     try:
-        lat, lon = map(float, selected_locations.split(','))
+        lat, lon = map(float, selected_location.split(','))
     except ValueError:
-        return (html.Div(f"Invalid Location: {selected_locations[0]}", className='error'),
-                html.Div("N/A", className='error'))
+        return html.Div("Invalid location format.", className='error'), html.Div("Invalid location format.", className='error')
 
+    # Fetch updated temperature and time
     current_temp = get_current_temperature(lat, lon)
-    if 'temperature' not in current_temp:
-        return (html.Div("Error fetching temperature", className='error'),
-                html.Div("N/A", className='error'))
-
     rounded_temp = round(current_temp['temperature'])
 
     current_time = get_current_time(lat, lon)
@@ -226,6 +220,7 @@ def update_temp_and_time(selected_locations):
     ], className="current-time-widget")
 
     return temp_div, time_div
+
 
 
 # Callback for temp and time display
@@ -264,7 +259,7 @@ def update_graph(selected_locations, start_date, end_date):
     start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
     end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
 
-    if not isinstance(selected_locations, list):  # Add check to ensure selected_locations is a list.
+    if not isinstance(selected_locations, list):
         selected_locations = [selected_locations]
 
     for location in selected_locations:
