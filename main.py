@@ -7,6 +7,9 @@ import requests_cache
 from retry_requests import retry
 import openmeteo_requests
 from datetime import datetime, timedelta, date, time, timezone
+import duckdb
+
+
 
 # 1) Cache for historical data (never expires)
 cache_session_hist = requests_cache.CachedSession('historical_cache', expire_after=-1)
@@ -20,29 +23,39 @@ openmeteo_current = openmeteo_requests.Client(session=retry_session_current)
 
 
 def get_current_temperature(lat, lon):
-    url = "https://api.open-meteo.com/v1/forecast"
-    params = {
-        "latitude": lat,
-        "longitude": lon,
-        "forecast_days": 1,
-        "current_weather": True
+    db_path = ("weather_data.duckdb")
+    with duckdb.connect(db_path) as conn:
 
-    }
-    responses = openmeteo_current.weather_api(url, params=params)
+        cached_temp = conn.execute(
+            "SELECT temperature FROM weather_cache WHERE latitude = ? AND longitude = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT 1",
+            [lat, lon, datetime.now(timezone.utc) - timedelta(hours=1)]
+        ).fetchone()
 
-    # Process first location. Add a for-loop for multiple locations or weather models
-    response = responses[0]
-    print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
-    print(f"Elevation {response.Elevation()} m asl")
-    print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
-    print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
+        if cached_temp:
+            return {"temperature": cached_temp[0]}
 
-    # Current values. The order of variables needs to be the same as requested.
-    current = response.Current()
+        # If no cached data, fetch from API
+        url = "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "forecast_days": 1,
+            "current_weather": True
+        }
+        responses = openmeteo_current.weather_api(url, params=params)
+        response = responses[0]
+        current_temperature_2m = response.Current().Variables(0).Value()
 
-    current_temperature_2m = current.Variables(0).Value()
 
-    return {"temperature": current_temperature_2m}
+        conn.execute(
+            "INSERT INTO weather_cache (latitude, longitude, temperature, timestamp) VALUES (?, ?, ?, ?)",
+            [lat, lon, current_temperature_2m, datetime.now(timezone.utc)]
+        )
+        conn.commit()
+
+        return {"temperature": current_temperature_2m}
+
+
 
 
 timezone_offset = None
@@ -61,7 +74,7 @@ def get_current_time(lat, lon):
         responses = openmeteo_current.weather_api(url, params=params)
         response = responses[0]
 
-        timezone_name = response.Timezone()
+
         timezone_offset_seconds = response.UtcOffsetSeconds()
 
 
