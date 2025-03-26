@@ -1,4 +1,4 @@
-from dash import dcc, html, Input, Output, State, Dash, dash
+from dash import dcc, callback_context, html, Input, Output, State, Dash, dash
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -8,6 +8,8 @@ from retry_requests import retry
 import openmeteo_requests
 from datetime import datetime, timedelta, date, time, timezone
 import duckdb
+import dash_bootstrap_components as dbc
+
 
 
 
@@ -139,7 +141,7 @@ def create_weather_graph(meteo_df, title):
 
 def geocode_location(search_term):
     if not search_term:
-        return None
+        return []
 
     url = f"https://geocoding-api.open-meteo.com/v1/search?name={search_term}&count=5"
     try:
@@ -148,24 +150,32 @@ def geocode_location(search_term):
         data = response.json()
 
         if data and 'results' in data:
+            results = []
             for result in data['results']:
-                if 'latitude' in result and 'longitude' in result:
+                if 'latitude' in result and 'longitude' in result and 'admin1' in result and 'country':
                     latitude = result['latitude']
                     longitude = result['longitude']
-                    return latitude, longitude
+                    name = result['name']
+                    admin1 = result.get('admin1', '')
+                    country = result['country']
+                    formatted_name = f"{name}, {admin1}, {country}" if admin1 else f"{name}, {country}"
+                    results.append({'label': formatted_name, 'value': f"{latitude}, {longitude}"})
+            return results
         else:
             print(f"No results for '{search_term}'.")
-            return None
+            return []
     except requests.exceptions.RequestException as e:
         print(f"Geocoding Error: {e}")
-        return None
+        return []
     except (KeyError, TypeError) as e:
         print(f"Error parsing geocoding data: {e}")
-        return None
+        return []
 
+
+
+external_stylesheets = ['/Users/audrey/PycharmProjects/weather-data-visualisation/assets/style.css', dbc.themes.BOOTSTRAP]
 
 # Dash App Setup
-external_stylesheets = ['/Users/audrey/PycharmProjects/weather-data-visualisation/assets/style.css']
 app = Dash(__name__, external_stylesheets=external_stylesheets)
 
 initial_dropdown_options = []
@@ -173,40 +183,58 @@ initial_dropdown_options = []
 today = date.today()
 min_date = today - timedelta(days=31000)
 
-# Defines content and structure of app's UI
+# app.layout defines content and structure of app's UI
 app.layout = html.Div(className='container', children=[
     html.H1("Weather Data Visualisation"),
 
-    html.Div(className='search-container', children=[
-        dcc.Input(id='location-search', placeholder='Enter a location', type='text', className='search-input'),
-        dcc.Dropdown(
-            id='location-dropdown'
+    dbc.Row([
+        dbc.Col(dbc.Button("Current Temperature/Time", id='current-data-button', style={'height': '50px', 'margin': '10px'}), width=6),
+        dbc.Col(dbc.Button("Historical Data", id="historical-data-button", style={'height': '50px', 'margin': '10px'}), width=6),
+    ]),
+
+    html.Div(id='content-area', children=[
+        html.P("Please select a data type")
+    ]),
+
+    html.Div(id="current-data-content", style={'display': 'none'}, children=[
+        html.Div(className='search-container', children=[
+            dcc.Input(id='location-search', placeholder='Enter a location', type='text', className='search-input'),
+            dcc.Dropdown(
+                id='location-dropdown-current',
+                placeholder="Select a location",
+            ),
+        ]),
+        html.Div(className='widget-container', children=[
+            html.Div(id='current-temp-display', className='current-temp-widget'),
+            html.Div(id='current-time-display', className='current-time-widget'),
+        ]),
+    ]),
+    html.Div(id='historical-data-content', style={'display': 'none'}, children=[
+        html.Div(className='search-container', children=[
+            dcc.Input(id='location-search-graph', placeholder='Enter location(s)', type='text', className='search-input'),
+            dcc.Dropdown(
+                id='location-dropdown-graph',
+                placeholder="Select location(s)",
+                multi=True
+            ),
+        ]),
+        dcc.Graph(id='weather-graph', className='graph'),
+        dcc.DatePickerRange(
+            id='date-range-picker',
+            min_date_allowed=min_date,
+            max_date_allowed=today,
+            start_date=min_date,
+            end_date=today
         ),
-    ]),
-
-    html.Div(className='widget-container', children=[
-        html.Div(id='current-temp-display', className='current-temp-widget'),
-        html.Div(id="current-time-display", className='current-time-widget'),
-    ]),
-
-    dcc.Graph(id='weather-graph', className='graph'),
-
-    dcc.DatePickerRange(
-        id='date-range-picker',
-        min_date_allowed=min_date,
-        max_date_allowed=today,
-        start_date=min_date,
-        end_date=today
-    )
+    ])
 ])
 
 
 @app.callback(
     [Output('current-temp-display', 'children'),
      Output('current-time-display', 'children')],
-    [Input('location-dropdown', 'value')]
+    [Input('location-dropdown-current', 'value')]
 )
-
 def update_temp_and_time(selected_location):
     if not selected_location:
         return html.Div("No location selected.", className='error'), html.Div("No location selected.", className='error')
@@ -238,33 +266,49 @@ def update_temp_and_time(selected_location):
 
 # Callback for temp and time display
 @app.callback(
-    Output('location-dropdown', 'options'),
-    Output('location-dropdown', 'value'),
+    Output('location-dropdown-current', 'options'),
+    Output('location-dropdown-current', 'value'),
     Input('location-search', 'value'),
-    State('location-dropdown', 'value')
+    State('location-dropdown-current', 'value')
 )
 def update_location_options(search_term, selected_locations):
     if search_term:
-        result = geocode_location(search_term)
-        if result is not None:
-            latitude, longitude = result
-            new_option = {'label': search_term, 'value': f"{latitude},{longitude}"}
-            return [new_option], [new_option['value']]
+        results = geocode_location(search_term)
+        if results:
+            return results, [results[0]['value']]
         else:
-            # No valid result: do not update
-            return dash.no_update, selected_locations
-    return dash.no_update, selected_locations
+            return [], []
+    else:
+        return [], []
+
+    #return dash.no_update, selected_locations
+
+@app.callback(
+    Output('location-dropdown-graph', 'options'),
+    Output('location-dropdown-graph', 'value'),
+    Input('location-search-graph', 'value'),
+    State('location-dropdown-graph', 'value')
+)
+def update_location_options_graph(search_term, selected_locations):
+    if search_term:
+        results = geocode_location(search_term)
+        if results:
+            return results, [results[0]['value']]
+        else:
+            return [],[]
+    else:
+        return [],[]
 
 
 # Callback for weather graph, l
 @app.callback(
     Output('weather-graph', 'figure'),
-    Input('location-dropdown', 'value'),
+    Input('location-dropdown-graph', 'value'),
     Input('date-range-picker', 'start_date'),
     Input('date-range-picker', 'end_date')
 )
 def update_graph(selected_locations, start_date, end_date):
-    #  historical_url = "https://historical-forecast-api.open-meteo.com/v1/forecast"
+
     if not selected_locations:
         return dash.no_update
 
@@ -300,6 +344,31 @@ def update_graph(selected_locations, start_date, end_date):
     )
     return fig
 
+@app.callback(
+    Output("current-data-content", "style"),
+    Output('historical-data-content', 'style'),
+    Input('current-data-button', 'n_clicks'),
+    Input("historical-data-button", 'n_clicks'),
+    State("current-data-content", 'style'),
+    State('historical-data-content', 'style')
+)
+def toggle_content(current_clicks, historical_clicks, current_style, historical_style):
+    ctx = callback_context
+    if not ctx.triggered:
+        return {'display': 'none'}, {'display': 'none'}
+    else:
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        if button_id == 'current-data-button':
+            if current_style['display'] == 'none':
+                return {'display': 'block'}, {'display': 'none'}
+            else:
+                return {'display': 'none'}, {'display': 'none'}
+        elif button_id == 'historical-data-button':
+            if historical_style['display'] == 'none':
+                return {'display': 'none'}, {'display': 'block'}
+            else:
+                return {'display': 'none'}, {'display': 'none'}
+
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run(debug=True)
