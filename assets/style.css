@@ -1,5 +1,10 @@
+@font-face {
+    font-family: 'TimeBurner';
+    src: url('Timeburner-xJB8.ttf');
+}
+
 body {
-    font-family: sans-serif;
+    font-family: 'TimeBurner';
 }
 
 h1 {
@@ -14,11 +19,14 @@ h1 {
 }
 
 .graph {
+    padding-top: 40px;
+    font-family: 'TimeBurner';
     width: 100%;
     margin-top: 20px;
 }
 
 .search-container {
+    font-family: 'TimeBurner';
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -26,15 +34,18 @@ h1 {
 }
 
 .search-input {
+    font-family: 'TimeBurner';
     width: 300px;
     text-align: left;
 }
 
 #location-dropdown {
+    font-family: 'TimeBurner';
     width: 100%;
 }
 
 .widget-container {
+    font-family: 'TimeBurner';
     display: flex;
     justify-content: center;
     align-items: center;
@@ -43,6 +54,7 @@ h1 {
 }
 
 .location-dropdown {
+    font-family: 'TimeBurner';
     width: 50%;
     display: block;
     margin: 0 auto;
@@ -50,6 +62,7 @@ h1 {
 }
 
 .current-time-widget, .current-temp-widget {
+    font-family: 'TimeBurner';
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -63,13 +76,22 @@ h1 {
 }
 
 .time-number, .temp-number {
-    font-size: 36px;
+    padding-top: 28px;
+    font-family: 'TimeBurner';
+    font-size: 50px;
     color: #007acc;
     font-weight: bold;
+    align-items: center;
+    justify-content: center;
 }
 
 .temp-label, .time-label {
+    font-family: 'TimeBurner';
     font-size: 16px;
     margin: 0;
     color: #555;
+    padding-top: 25px;
+}
+* {
+    border-radius: 10px;
 }
